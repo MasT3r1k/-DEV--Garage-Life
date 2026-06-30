@@ -4,7 +4,7 @@ local EngineMultiplier = 1 -- Násobič motoru (1.0 = standard, 1.5 = silnějš�
 local IdleRPM = 1000 -- Otáčky na volnoběh
 -- ==========================
 
-local MaxFuel = 100
+local MaxFuel = 10
 local AC6UI = script.Parent
 local center = AC6UI:WaitForChild("Gauges"):WaitForChild("Center")
 local IsOn = script.Parent:WaitForChild("IsOn")
@@ -12,7 +12,7 @@ local IsOn = script.Parent:WaitForChild("IsOn")
 local Car = script.Parent.Car.Value
 local GasEvent = Car:WaitForChild("GasEvent")
 local RPM = script.Parent.Values.RPM
-local FuelAmount = Car:WaitForChild("DriveSeat"):WaitForChild("FuelAmount")
+local FuelAmount = Car:WaitForChild("CarFuel")
 
 local totalFuelConsumed = 0
 local totalDistanceKM = 0
@@ -35,8 +35,6 @@ FuelAmount.Changed:Connect(function()
 	elseif fuelPercent < 0.05 then
 		fuelColor = Color3.fromRGB(189, 42, 42)
 	end
-
-	print(fuelPercent)
 
 	center.Fuel.Needle.N1.UIGradient.Color = ColorSequence.new({
 		ColorSequenceKeypoint.new(0, fuelColor),

@@ -1,8 +1,7 @@
 local Players = game:GetService("Players")
-local MaxFuel = 100
 local car = script.Parent.Parent
 
-local findfuel = car.DriveSeat.FuelAmount
+local findfuel = car.CarFuel
 
 script.Parent.OnServerEvent:Connect(function(player, fueltaken)
 	if fueltaken then

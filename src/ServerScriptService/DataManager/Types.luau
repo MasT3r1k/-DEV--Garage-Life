@@ -95,7 +95,7 @@ export type CompleteWheelItem = {
 
 export type InventoryItem =
 	BaseItem
-& (CoolantBottleItem | OilBottleItem | JerryCanItem | EnginePartItem | RimItem | TireItem | CompleteWheelItem)
+	& (CoolantBottleItem | OilBottleItem | JerryCanItem | EnginePartItem | RimItem | TireItem | CompleteWheelItem)
 
 export type VehicleBody = {
 	front_bumper: string,

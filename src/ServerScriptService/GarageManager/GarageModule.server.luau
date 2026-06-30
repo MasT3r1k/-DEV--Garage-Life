@@ -8,6 +8,7 @@ local GarageModule = require(ReplicatedStorage.Services.GarageService)
 
 local DataTemplate = require(ServerScriptService.DataManager.DataTemplate)
 local Types = require(ServerScriptService.DataManager.Types)
+local ProfileStore = require(ServerScriptService.ServerPackages.ProfileStore)
 local Data = require(ServerStorage.Garage.Modules.Data)
 
 local GaragesFolder = workspace:WaitForChild("Garages")
@@ -66,6 +67,9 @@ local function onPlayerInit(player: Player, profile)
 		ride_height = 0,
 		wheels = {},
 	}
+
+	profile.Data.cars = {}
+	profile.Data.garage_slots = {}
 
 	GarageModule.spawnGarageModel(player, data.garage)
 	GarageModule.addPlayerCar(player, car)

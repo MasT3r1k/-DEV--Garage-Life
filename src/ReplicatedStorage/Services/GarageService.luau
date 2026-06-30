@@ -10,6 +10,7 @@ local Types = require(ServerScriptService.DataManager.Types)
 local getTaggedPartFromModel = require(ReplicatedStorage.Utils.getTaggedPartFromModel)
 local getTaggedPartsFromModel = require(ReplicatedStorage.Utils.getTaggedPartsFromModel)
 local inTable = require(ReplicatedStorage.Utils.inTable)
+local removeSeats = require(ReplicatedStorage.Utils.removeSeats)
 local BodyFolder = ReplicatedStorage.Garage.Body
 
 local MIN_DIST_BETWEEN_GARAGES = 300
@@ -26,6 +27,10 @@ function GetFolder(parent, name)
 		folder.Parent = parent
 	end
 	return folder
+end
+
+function GarageModule.GetDriveSystemFolder()
+	return GetFolder(ServerScriptService, "Drive_System")
 end
 
 function GarageModule.GetGaragesFolder()
@@ -220,12 +225,20 @@ function GarageModule.TeleportPlayerToGarage(player: Player, garage: Model)
 		return
 	end
 
+	local humanoid = character:FindFirstChild("Humanoid")
+	if humanoid and humanoid.Sit then
+		humanoid.Sit = false
+	end
+
+	if not garage.InteriorSpawn then
+		return
+	end
 	local spawnPoint = garage.InteriorSpawn:Clone()
 
 	if RunService:IsServer() then
-		player:RequestStreamAroundAsync(spawnPoint.Position)
+		player:RequestStreamAroundAsync(garage.InteriorSpawn.Position)
 	end
-	character:PivotTo(spawnPoint.CFrame + Vector3.new(0, 1, 0))
+	character:PivotTo(garage.InteriorSpawn.CFrame + Vector3.new(0, 1, 0))
 
 	if loadingFrame then
 		loadingFrame.Visible = false
@@ -287,14 +300,17 @@ function GarageModule.getPlayerCars(player: Player)
 		return
 	end
 
-	local profile = ProfileManager.GetProfile(player)
+	local profile = ProfileManager:GetProfile(player)
 	return profile.Data.cars
 end
 
 function GarageModule.canAddPlayerCar(player)
 	local emptySlots = GarageModule.EmptySpawnsInGarage(player)
-	print("Empty spaces: " .. #emptySlots)
-	return #emptySlots >= 1
+	if #emptySlots == 0 then
+		warn("No more space in Garage, buy bigger one")
+		return
+	end
+	return true
 end
 
 function GarageModule.addPlayerCar(player: Player, car: Types.Vehicle)
@@ -311,7 +327,6 @@ function GarageModule.addPlayerCar(player: Player, car: Types.Vehicle)
 
 	-- Verify if we have space in garage
 	if not GarageModule.canAddPlayerCar(player) then
-		warn("No more space in Garage, buy bigger one")
 		return
 	end
 
@@ -322,13 +337,16 @@ function GarageModule.addPlayerCar(player: Player, car: Types.Vehicle)
 
 	-- Update profile data
 	if replica then
+		car.car_id = carId
 		replica:Set({ "cars", carId }, car)
-		replica:ArrayInsert({ "garage_slots" }, carId)
+		replica:TableInsert({ "garage_slots" }, carId)
 		local codex = profile.Data.codex
 		if not inTable(codex, car.vehicle_name) then
-			replica:ArrayInsert({ "codex" }, car.vehicle_name)
+			replica:TableInsert({ "codex" }, car.vehicle_name)
 		end
 	end
+
+	print(profile.Data.cars)
 
 	GarageModule.spawnGarageCars(player) -- Update cars in garage
 end
@@ -345,7 +363,7 @@ function GarageModule.getPlayerCarAtIndex(player: Player, index: number)
 		return
 	end
 
-	local profile = ProfileManager.GetProfile(player)
+	local profile = ProfileManager:GetProfile(player)
 	if not profile then
 		return
 	end
@@ -370,7 +388,7 @@ function GarageModule.EmptySpawnsInGarage(player)
 	local spawns = {} :: { number }
 	local garageSlots = GarageModule.GetGarageSlots(player)
 
-	local profile = ProfileManager.GetProfile(player)
+	local profile = ProfileManager:GetProfile(player)
 	if not profile then
 		return
 	end
@@ -397,71 +415,79 @@ function GarageModule.spawnGarageCars(player: Player)
 
 	local CarSpawns = GarageModule.GetGarageSlots(player)
 	for _, carSpawn in ipairs(CarSpawns) do
-		local cars = GarageModule.getPlayerCarAtIndex(player, _)
+		local car = GarageModule.getPlayerCarAtIndex(player, _)
 
-		if not cars then
+		if not car then
 			continue
 		end
 
-		print(cars)
+		local previousCar = carSpawn:FindFirstChild("Car")
+		if previousCar then
+			previousCar:Destroy()
+		end
 
-		if not cars[1] then
+		local setupCar = GarageModule.SetupCar(player, car)
+
+		-- Unavailable car
+		if not setupCar then
+			warn("Failed to load car " .. car.vehicle_name)
+			local carTemplatesFolder = GarageModule.GetCarTemplatesFolder()
+			if not carTemplatesFolder then
+				warn("Car Template Folder not found")
+				return
+			end
+			local CarTemplate = carTemplatesFolder:WaitForChild("UnavailableCarTarp")
+			if not CarTemplate then
+				warn("Failed to unavailable car tarp")
+				return
+			end
+
+			setupCar = CarTemplate:Clone()
+			setupCar.Name = "UnavailableCar"
 			continue
+		else
+			setupCar.Name = "Car"
+			local UnavailableGui = Instance.new("BillboardGui")
+			UnavailableGui.Name = "UnavailableGui"
+			UnavailableGui.AlwaysOnTop = true
+			UnavailableGui.Enabled = true
+			UnavailableGui.MaxDistance = 50
+			UnavailableGui.StudsOffset = Vector3.new(0, 5, 0)
+			UnavailableGui.Size = UDim2.new(UDim.new(10, 0), UDim.new(2, 0))
+
+			local TextLabel = Instance.new("TextLabel")
+			TextLabel.Parent = UnavailableGui
+			TextLabel.FontFace = Font.fromName("Montserrat", Enum.FontWeight.Bold)
+			TextLabel.BackgroundTransparency = 1
+			TextLabel.Text = car.vehicle_name or "Unknown"
+			TextLabel.TextColor3 = Color3.new(1, 1, 1)
+			TextLabel.TextScaled = true
+			TextLabel.Size = UDim2.new(UDim.new(1, 0), UDim.new(1, 0))
+
+			UnavailableGui.Parent = carSpawn
+
+			removeSeats(setupCar)
+
+			-- proximityprompt
+			local carTakeout = carSpawn:FindFirstChild("CarTakeout")
+			if carTakeout then
+				local ProximityPrompt = Instance.new("ProximityPrompt")
+				ProximityPrompt.ObjectText = "Garage"
+				ProximityPrompt.ActionText = "Leave Garage With This Car"
+				ProximityPrompt.Parent = carTakeout
+				ProximityPrompt.HoldDuration = 0.5
+				ProximityPrompt.KeyboardKeyCode = Enum.KeyCode.F
+
+				ProximityPrompt.Triggered:Connect(function()
+					GarageModule.spawnCar(player, car)
+				end)
+			end
 		end
 
-		for guid, carData in pairs(cars[1]) do
-			if not carData then
-				continue
-			end
+		setupCar.Parent = carSpawn
+		setupCar:SetPrimaryPartCFrame(carSpawn.CFrame * CFrame.new(0, 1, 0))
 
-			local previousCar = carSpawn:FindFirstChild("Car")
-			if previousCar then
-				previousCar:Destroy()
-			end
-
-			local setupCar = GarageModule.SetupCar(player, carData)
-
-			-- Unavailable car
-			if not setupCar then
-				warn("Failed to load car " .. carData.vehicle_name)
-				local carTemplatesFolder = GarageModule.GetCarTemplatesFolder()
-				if not carTemplatesFolder then
-					warn("Car Template Folder not found")
-					return
-				end
-				local CarTemplate = carTemplatesFolder:WaitForChild("UnavailableCarTarp")
-				if not CarTemplate then
-					warn("Failed to unavailable car tarp")
-					return
-				end
-
-				setupCar = CarTemplate:Clone()
-				setupCar.Name = "UnavailableCar"
-				continue
-			else
-				setupCar.Name = "Car"
-				local UnavailableGui = Instance.new("BillboardGui")
-				UnavailableGui.Name = "UnavailableGui"
-				UnavailableGui.AlwaysOnTop = true
-				UnavailableGui.Enabled = true
-				UnavailableGui.MaxDistance = 50
-				UnavailableGui.Size = UDim2.new(UDim.new(10, 0), UDim.new(2, 0))
-
-				local TextLabel = Instance.new("TextLabel")
-				TextLabel.Parent = UnavailableGui
-				TextLabel.FontFace = Font.fromName("Montserrat", Enum.FontWeight.Bold)
-				TextLabel.Text = carData.vehicle_name or "Unknown"
-				TextLabel.TextColor3 = Color3.new(1, 1, 1)
-				TextLabel.TextScaled = true
-
-				UnavailableGui.Parent = carSpawn
-			end
-
-			setupCar.Parent = carSpawn
-			setupCar:SetPrimaryPartCFrame(carSpawn.CFrame)
-
-			-- Billboard gui
-		end
+		-- Billboard gui
 	end
 
 	-- if garageCarSpawnCooldown[player.UserId] and tick() - garageCarSpawnCooldown[player.UserId] < 10 then
@@ -587,41 +613,67 @@ function GarageModule.ApplyApperanceOnTheCar(carModel)
 	end
 end
 
-function GarageModule.spawnCar(player: Player, car: Types.Vehicle)
+function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: string })
 	if not RunService:IsServer() then
 		return
 	end
 	if not player then
 		return
 	end
-	local CarSpawns = GarageModule.GetGarageSlots(player)
-	print(CarSpawns)
-	for _, carSpawn in ipairs(CarSpawns) do
-		local cars = GarageModule.getPlayerCarAtIndex(player, _)
 
-		if not cars then
-			continue
-		end
-
-		for guid, carData in pairs(cars[1]) do
-			if not carData then
-				continue
-			end
-
-			local previousCar = carSpawn:FindFirstChild("Car")
-			if previousCar then
-				previousCar:Destroy()
-			end
-
-			local setupCar = GarageModule.SetupCar(player, carData)
-			if not setupCar then
-				continue
-			end
-			setupCar.Name = "Car"
-			setupCar.Parent = carSpawn
-			setupCar:SetPrimaryPartCFrame(carSpawn.CFrame)
-		end
+	if not car then
+		return
 	end
+
+	GarageModule.despawnCar(player) -- Despawn old car
+
+	local garageName = GarageModule.GetPlayerCurrentGarageName(player)
+	local garageModel = GarageModule.GetPlayerGarageModel(player)
+
+	local GarageEntryFolder = GarageModule.GetEntryGaragesFolder()
+	local entryGarage = GarageEntryFolder:WaitForChild(garageName .. "_Enter")
+	local spawnPoint = entryGarage:WaitForChild("SpawnLocation")
+
+	local setupCar = GarageModule.SetupCar(player, car)
+	if not setupCar then
+		return
+	end
+
+	setupCar.Name = player.Name .. "_Vehicle"
+	setupCar.Parent = GarageModule.GetCarsFolder()
+	setupCar:SetPrimaryPartCFrame(spawnPoint.CFrame * CFrame.new(0, 1, 0))
+
+	-- Add Car Parameters
+	local CarId = Instance.new("StringValue")
+	CarId.Name = "CarId"
+	CarId.Value = car.car_id
+	CarId.Parent = setupCar
+
+	local CarOwner = Instance.new("StringValue")
+	CarOwner.Name = "CarOwner"
+	CarOwner.Value = player.UserId
+	CarOwner.Parent = setupCar
+
+	local CarFuel = Instance.new("IntValue")
+	CarFuel.Name = "CarFuel"
+	CarFuel.Value = car.fuel
+	CarFuel.Parent = setupCar
+
+	-- Add player to Car Owners
+	local CarOwners = GarageModule.GetCarOwnersFolder()
+	if CarOwners then
+		local existingOwner = Instance.new("ObjectValue")
+		existingOwner.Value = setupCar
+		existingOwner.Name = player.Name
+		existingOwner.Parent = CarOwners
+	end
+
+	-- Add A-Chassis
+	local AChassis = GarageModule.GetDriveSystemFolder():WaitForChild("A-Chassis Tune"):Clone()
+	AChassis.Parent = setupCar
+
+	-- Make player leave garage
+	GarageModule.LeaveGarage(player, garageModel)
 end
 
 function GarageModule.despawnCar(player: Player)
