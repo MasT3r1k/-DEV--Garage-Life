@@ -1,0 +1,11 @@
+[package]
+name = "ddust1n/packet"
+description = "Fork of 5uphi's Packet module."
+version = "0.0.1"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+exclude = ["**"]
+include = ["src", "src/**", "default.project.json", "wally.toml"]
+
+[dependencies]

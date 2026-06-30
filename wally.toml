@@ -5,6 +5,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
+Packet = "ddust1n/packet@0.0.1"
 TopbarPlus = "1foreverhd/topbarplus@3.4.0"
 ZonePlus = "mattschrubb/zoneplus@3.2.0"
 
