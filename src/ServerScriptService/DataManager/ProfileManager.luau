@@ -35,8 +35,11 @@ function ProfileManager:CreateReplica(player, profile)
 
 	self.Replicas[player] = replica
 
-	replica:AddCleanupTask(function()
-		self.Replicas[player] = nil
+	profile.OnSessionEnd:Connect(function()
+		if self.Replicas[player] == replica then
+			self.Replicas[player] = nil
+		end
+		replica:Destroy()
 	end)
 
 	return replica

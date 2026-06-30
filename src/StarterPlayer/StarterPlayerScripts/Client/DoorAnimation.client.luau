@@ -9,7 +9,7 @@ local ZonePlus = require(ReplicatedStorage.Packages.ZonePlus)
 
 local currentGarage = nil
 
-Replica.OnNew("GlobalData", function(replica)
+Replica.OnNew("PlayerProfile", function(replica)
 	currentGarage = replica.Data.garage
 
 	replica:OnSet({ "garage" }, function(new_garage, old_garage)
@@ -39,7 +39,6 @@ function setupGarageDoor(door)
 	end
 
 	DoorZone.localPlayerEntered:Connect(function()
-		print("Local Player entered zone")
 		if currentGarage ~= garage_name then
 			return
 		end
@@ -53,7 +52,6 @@ function setupGarageDoor(door)
 	end)
 
 	DoorZone.localPlayerExited:Connect(function()
-		print("Local Player exited zone")
 		if currentGarage ~= garage_name then
 			return
 		end

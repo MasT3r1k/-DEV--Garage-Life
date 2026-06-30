@@ -82,8 +82,8 @@ Players.PlayerAdded:Connect(function(player: Player)
 		end
 
 		if profile then
-			onPlayerInit(player, profile)
 			ProfileManager:CreateReplica(player, profile)
+			onPlayerInit(player, profile)
 		end
 	end)
 
