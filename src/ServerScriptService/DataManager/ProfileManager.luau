@@ -9,10 +9,16 @@ ProfileManager.Replicas = {}
 local PlayerProfileToken = Replica.Token("PlayerProfile")
 
 function ProfileManager:GetProfile(player)
+	while not self.Profiles[player] and player.Parent do
+		task.wait()
+	end
 	return self.Profiles[player]
 end
 
 function ProfileManager:GetReplica(player)
+	while not self.Replicas[player] and player.Parent do
+		task.wait()
+	end
 	return self.Replicas[player]
 end
 
