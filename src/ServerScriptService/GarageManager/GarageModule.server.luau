@@ -1,15 +1,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
 
 local ProfileManager = require(ServerScriptService.DataManager.ProfileManager)
 local GarageModule = require(ReplicatedStorage.Services.GarageService)
 
-local DataTemplate = require(ServerScriptService.DataManager.DataTemplate)
 local Types = require(ServerScriptService.DataManager.Types)
-local ProfileStore = require(ServerScriptService.ServerPackages.ProfileStore)
-local Data = require(ServerStorage.Garage.Modules.Data)
 
 local GaragesFolder = workspace:WaitForChild("Garages")
 

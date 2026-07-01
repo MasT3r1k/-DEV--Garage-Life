@@ -2,12 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Replica = require(ReplicatedStorage.ReplicaClient)
 
 Replica.OnNew("PlayerProfile", function(replica)
-	print("Klient úspěšně obdržel nová data od serveru!")
-	print("Prvotní načtení garáže:", replica.Data.garage)
-
-	replica:OnSet({ "garage" }, function(newGarageName, oldGarageName)
-		print("Garáž se změnila na:", newGarageName)
-	end)
+	replica:OnSet({ "garage" }, function(newGarageName, oldGarageName) end)
 
 	replica:OnChange(function(changeType, path, value)
 		-- path[1] je hlavní klíč (např. "garage_slots")

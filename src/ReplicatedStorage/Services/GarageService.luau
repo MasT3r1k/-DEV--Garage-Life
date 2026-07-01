@@ -358,8 +358,6 @@ function GarageModule.addPlayerCar(player: Player, car: Types.Vehicle)
 		end
 	end
 
-	print(profile.Data.cars)
-
 	GarageModule.spawnGarageCars(player) -- Update cars in garage
 end
 
@@ -579,7 +577,6 @@ function GarageModule.SetupCar(player: Player, car: Types.Vehicle)
 
 	if car then
 		for partType, partName in pairs(car.body) do
-			print(partType, partName)
 			if partName ~= "" then
 				local bodyFolderCar = BodyFolder:FindFirstChild(carName)
 				if not bodyFolderCar then

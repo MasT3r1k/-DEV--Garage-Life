@@ -100,10 +100,7 @@ export type InventoryItem =
 export type VehicleBody = {
 	front_bumper: string,
 	front_fender: string,
-	headlight: {
-		type: string,
-		color: string,
-	},
+	headlight: string,
 	hood: string,
 	rear_bumper: string,
 	rear_fender: string,

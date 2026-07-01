@@ -76,7 +76,7 @@ UserInputService.InputBegan:Connect(function(input, isTyping)
 					script.Parent.Visible = true
 				end
 				repeat
-					wait(0.1)
+					task.wait(0.1)
 					pushes += 1
 				until not pressed or pushes >= 5
 				if pushes >= 5 then
@@ -93,7 +93,7 @@ end)
 
 car.DriveSeat.HeadsUpDisplay = false
 
-wait()
+task.wait()
 local _pRPM = _Tune.PeakRPM
 local _sRPM = _Tune.ShiftRPM
 local _lRPM = _Tune.Redline
@@ -154,7 +154,7 @@ if autoscaling then
 	end
 end
 
-wait()
+task.wait()
 for i = 0, revEnd * 2 do
 	local ln = gauges.ln:clone()
 	ln.Parent = center.Tach
@@ -173,7 +173,7 @@ for i = 0, revEnd * 2 do
 end
 
 -- Redline
-wait()
+task.wait()
 do
 	local rot = 270
 		- (math.ceil(_Tune.Redline / 1000) * 1000 - _Tune.ShiftRPM) / (math.ceil(_Tune.Redline / 1000) * 1000) * 270
@@ -205,7 +205,7 @@ for i = 0, 24 do
 	bln.Visible = true
 end
 
-wait()
+task.wait()
 for i, v in pairs(UNITS) do
 	local lnn = Instance.new("Frame", center.Speedo)
 	lnn.BackgroundTransparency = 1
