@@ -22,13 +22,8 @@ local UNITS = { --Click on speed to change units
 
 -----------------------------------------------------------------------------------------------
 
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-
 local car = script.Parent.Parent.Car.Value
 local _Tune = require(car["A-Chassis Tune"])
-local fuel = car:FindFirstChild("DriveSeat"):FindFirstChild("FuelAmount")
-local supermax = 0
 local pushes = 0
 local pressed = false
 local gauges = script.Parent
@@ -133,13 +128,13 @@ if autoscaling then
 	end
 
 	local wDia = 0
-	for i, v in pairs(Drive) do
+	for _, v in pairs(Drive) do
 		if v.Size.Y > wDia then
 			wDia = v.Size.Y
 		end
 	end
 	Drive = nil
-	for i, v in pairs(UNITS) do
+	for _, v in pairs(UNITS) do
 		v.maxSpeed = math.ceil(
 			v.scaling
 				* wDia
@@ -161,12 +156,12 @@ for i = 0, revEnd * 2 do
 	ln.Rotation = 45 + i * 270 / (revEnd * 2)
 	ln.Num.Text = i / 2
 	ln.Num.Rotation = -ln.Rotation
-	ln.Num.Size = UDim2.new(6, 0, 4, 0)
+	ln.Num.Size = UDim2.new(UDim.new(6, 0), UDim.new(4, 0))
 	if i % 2 == 0 then
-		ln.Frame.Size = UDim2.new(0.3, 0, 1, 0)
+		ln.Frame.Size = UDim2.new(UDim.new(0.3, 0), UDim.new(1, 0))
 		ln.Num.Visible = true
 	else
-		ln.Frame.Size = UDim2.new(0.3, 0, 2, 0)
+		ln.Frame.Size = UDim2.new(UDim.new(0.3, 0), UDim.new(2, 0))
 		ln.Num:Destroy()
 	end
 	ln.Visible = true
@@ -181,25 +176,26 @@ do
 	center.Tach.Redline.N2.Image.Rotation = math.clamp(rot, 90, 270)
 end
 
-local blns = Instance.new("Frame", center.Boost)
+local blns = Instance.new("Frame")
+blns.Parent = center.Boost
 blns.Name = "blns"
 blns.BackgroundTransparency = 1
 blns.BorderSizePixel = 0
-blns.Size = UDim2.new(1, 0, 1, 0)
+blns.Size = UDim2.new(UDim.new(1, 0), UDim.new(1, 0))
 for i = 0, 24 do
 	local bln = gauges.bln:clone()
 	bln.Parent = blns
 	bln.Rotation = 270 * (i / 24)
 	bln.Num.Rotation = -bln.Rotation
 	if i % 4 == 0 then
-		bln.Frame.Size = UDim2.new(1, 0, 4, 0)
+		bln.Frame.Size = UDim2.new(UDim.new(1, 0), UDim.new(4, 0))
 		if i % 8 == 0 then
 			bln.Num.Text = i / 8 - 1
 		else
 			bln.Num:Destroy()
 		end
 	else
-		bln.Frame.Size = UDim2.new(1, 0, 1, 0)
+		bln.Frame.Size = UDim2.new(UDim.new(1, 0), UDim.new(1, 0))
 		bln.Num:Destroy()
 	end
 	bln.Visible = true
@@ -207,10 +203,11 @@ end
 
 task.wait()
 for i, v in pairs(UNITS) do
-	local lnn = Instance.new("Frame", center.Speedo)
+	local lnn = Instance.new("Frame")
+	lnn.Parent = center.Speedo
 	lnn.BackgroundTransparency = 1
 	lnn.BorderSizePixel = 0
-	lnn.Size = UDim2.new(1, 0, 1, 0)
+	lnn.Size = UDim2.new(UDim.new(1, 0), UDim.new(1, 0))
 	lnn.Name = v.units
 	if i ~= 1 then
 		lnn.Visible = false
@@ -222,7 +219,7 @@ for i, v in pairs(UNITS) do
 		ln.Rotation = 45 + 270 * (i / v.maxSpeed)
 		ln.Num.Text = i
 		ln.Num.Rotation = -ln.Rotation
-		ln.Frame.Size = UDim2.new(0.3, 0, 1, 0)
+		ln.Frame.Size = UDim2.new(UDim.new(0.3, 0), UDim.new(1, 0))
 		ln.Num.Visible = true
 		ln.Visible = ln.Rotation < (45 + 270)
 		for a = 1 / 4, 3 / 4, 1 / 4 do
@@ -230,7 +227,7 @@ for i, v in pairs(UNITS) do
 			lna.Name = "lna"
 			lna.Parent = lnn
 			lna.Rotation = ln.Rotation + ((45 + 270 * ((i + v.spInc) / v.maxSpeed)) - ln.Rotation) * a
-			lna.Frame.Size = UDim2.new(0.3, 0, 0.5, 0)
+			lna.Frame.Size = UDim2.new(UDim.new(0.3, 0), UDim.new(0.5, 0))
 			lna.Num:Destroy()
 			lna.Visible = lna.Rotation < (45 + 270)
 		end
@@ -309,7 +306,7 @@ end)
 --	center.SM.Unit.Text = UNITS[currentUnits].units
 --end)
 
-RunService.RenderStepped:Connect(function(dt)
+RunService.RenderStepped:Connect(function()
 	-- RPM
 	do
 		center.Tach.Needle.GroupColor3 = Color3.new(
@@ -329,7 +326,10 @@ RunService.RenderStepped:Connect(function(dt)
 		center.Tach.Needle.N1.Image.Rotation = math.min(rot, 0)
 		center.Tach.Needle.N2.Image.Rotation = math.max(rot, -90)
 		center.Tach.Needle.Frame.Rotation = rot + 270
-		center.SM.Bar.Size = UDim2.new(math.clamp(values.RPM.Value - _Tune.ShiftRPM + 1000, 0, 1000) / 1000, 0, 0.3, 0)
+		center.SM.Bar.Size = UDim2.new(
+			UDim.new(math.clamp(values.RPM.Value - _Tune.ShiftRPM + 1000, 0, 1000) / 1000, 0),
+			UDim.new(0.3, 0)
+		)
 		center.SM.Bar.ImageLabel.ImageColor3 = center.Tach.Needle.GroupColor3
 		center.SM.Bar.ImageLabel.ImageTransparency = center.Tach.Needle.GroupTransparency
 
@@ -404,18 +404,19 @@ RunService.RenderStepped:Connect(function(dt)
 				center.SM.Steer:FindFirstChildWhichIsA("UIAspectRatioConstraint"):Destroy()
 			end
 			center.SM.Steer.AnchorPoint = Vector2.new(0, 0.5)
-			center.SM.Steer.Position = UDim2.new(0.5, 0, -0.1, 0)
-			center.SM.Steer.Size = UDim2.new(0.5 * values.SteerC.Value, 0, 0.06, 0)
+			center.SM.Steer.Position = UDim2.new(UDim.new(0.5, 0), UDim.new(-0.1, 0))
+			center.SM.Steer.Size = UDim2.new(UDim.new(0.5 * values.SteerC.Value, 0), UDim.new(0.06, 0))
 		else
 			if not center.SM.Steer:FindFirstChildWhichIsA("UIAspectRatioConstraint") then
-				local x = Instance.new("UIAspectRatioConstraint", center.SM.Steer)
+				local x = Instance.new("UIAspectRatioConstraint")
+				x.Parent = center.SM.Steer
 				x.AspectRatio = 1
 				x.AspectType = Enum.AspectType.FitWithinMaxSize
 				x.DominantAxis = Enum.DominantAxis.Width
 			end
 			center.SM.Steer.AnchorPoint = Vector2.new(0.5, 0.5)
-			center.SM.Steer.Position = UDim2.new(0.5 + 0.5 * values.SteerC.Value, 0, -0.1, 0)
-			center.SM.Steer.Size = UDim2.new(1, 0, 0.06, 0)
+			center.SM.Steer.Position = UDim2.new(UDim.new(0.5 + 0.5 * values.SteerC.Value, 0), UDim.new(-0.1, 0))
+			center.SM.Steer.Size = UDim2.new(UDim.new(1, 0), UDim.new(0.06, 0))
 		end
 	end
 
@@ -440,8 +441,10 @@ end)
 
 -- Fix ui
 RunService.RenderStepped:Connect(function()
-	center.SM.Bar.ImageLabel.Position =
-		UDim2.new(0, -center.SM.Bar.ImageLabel.AbsoluteSize.X / 2 + center.SM.AbsoluteSize.X / 2, 0, 0)
+	center.SM.Bar.ImageLabel.Position = UDim2.new(
+		UDim.new(0, -center.SM.Bar.ImageLabel.AbsoluteSize.X / 2 + center.SM.AbsoluteSize.X / 2),
+		UDim.new(0, 0)
+	)
 end)
 Gear()
 currentGear()

@@ -10,7 +10,7 @@
 local Tune = {}
 do
 	--[[Misc]]
-	Tune.LoadDelay = 2 -- Delay before initializing chassis (in seconds)
+	Tune.LoadDelay = 1.5 -- Delay before initializing chassis (in seconds)
 	Tune.AutoStart = true -- Set to false if using manual ignition plugin
 	Tune.AutoFlip = true -- Set to false if using manual flip plugin
 

@@ -86,7 +86,7 @@ end
 function GarageModule.GetSafeGaragePosition()
 	local maxAttempts = 50
 	local mapSize = 10000
-	for i = 1, maxAttempts do
+	for _ = 1, maxAttempts do
 		local potentialPos = Vector3.new(math.random(-mapSize, mapSize), 500, math.random(-mapSize, mapSize))
 		local isSafe = true
 		for _, obj in pairs(workspace.Player_Garages:GetChildren()) do
@@ -483,7 +483,7 @@ function GarageModule.spawnGarageCars(player: Player)
 			if carTakeout then
 				local ProximityPrompt = Instance.new("ProximityPrompt")
 				ProximityPrompt.ObjectText = "Garage"
-				ProximityPrompt.ActionText = "Leave Garage With This Car"
+				ProximityPrompt.ActionText = "Take out"
 				ProximityPrompt.Parent = carTakeout
 				ProximityPrompt.HoldDuration = 0.5
 				ProximityPrompt.KeyboardKeyCode = Enum.KeyCode.F
@@ -666,11 +666,6 @@ function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: st
 	ownerValue.Name = "Owner"
 	ownerValue.Value = player
 	ownerValue.Parent = setupCar
-
-	local CarFuel = Instance.new("IntValue")
-	CarFuel.Name = "CarFuel"
-	CarFuel.Value = car.fuel
-	CarFuel.Parent = setupCar
 
 	-- Add player to Car Owners
 	local CarOwners = GarageModule.GetCarOwnersFolder()
