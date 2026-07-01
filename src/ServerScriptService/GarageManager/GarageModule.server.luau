@@ -25,10 +25,7 @@ local function onPlayerInit(player: Player, profile)
 		body = {
 			front_bumper = "Bumper1",
 			front_fender = "Fender1",
-			headlight = {
-				type = "Headlight2",
-				color = "#FFFFFF",
-			},
+			headlight = "Headlight2",
 			hood = "Hood1",
 			rear_bumper = "Bumper1",
 			rear_fender = "Fender1",
@@ -40,6 +37,7 @@ local function onPlayerInit(player: Player, profile)
 		body_colors = {
 			["Primary Paint"] = "#FFFFFF",
 			["Secondary Paint"] = "#FFFFFF",
+			["Headlight"] = "#FFFFFF",
 		},
 		body_dirty = 0,
 		fuel = 100,

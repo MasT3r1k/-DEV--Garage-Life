@@ -626,67 +626,6 @@ function GarageModule.ApplyApperanceOnTheCar(carModel)
 end
 
 function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: string })
-	-- if not RunService:IsServer() then
-	-- 	return
-	-- end
-	-- if not player then
-	-- 	return
-	-- end
-
-	-- if not car then
-	-- 	return
-	-- end
-
-	-- GarageModule.despawnCar(player) -- Despawn old car
-
-	-- local garageName = GarageModule.GetPlayerCurrentGarageName(player)
-	-- local garageModel = GarageModule.GetPlayerGarageModel(player)
-
-	-- local GarageEntryFolder = GarageModule.GetEntryGaragesFolder()
-	-- local entryGarage = GarageEntryFolder:WaitForChild(garageName .. "_Enter")
-	-- local spawnPoint = entryGarage:WaitForChild("SpawnLocation")
-
-	-- local setupCar = GarageModule.SetupCar(player, car)
-	-- if not setupCar then
-	-- 	return
-	-- end
-
-	-- setupCar.Name = player.Name .. "_Vehicle"
-	-- setupCar.Parent = GarageModule.GetCarsFolder()
-	-- setupCar:SetPrimaryPartCFrame(spawnPoint.CFrame * CFrame.new(0, 1, 0))
-
-	-- -- Add Car Parameters
-	-- local CarId = Instance.new("StringValue")
-	-- CarId.Name = "CarId"
-	-- CarId.Value = car.car_id
-	-- CarId.Parent = setupCar
-
-	-- local CarOwner = Instance.new("StringValue")
-	-- CarOwner.Name = "CarOwner"
-	-- CarOwner.Value = player.UserId
-	-- CarOwner.Parent = setupCar
-
-	-- local CarFuel = Instance.new("IntValue")
-	-- CarFuel.Name = "CarFuel"
-	-- CarFuel.Value = car.fuel
-	-- CarFuel.Parent = setupCar
-
-	-- -- Add player to Car Owners
-	-- local CarOwners = GarageModule.GetCarOwnersFolder()
-	-- if CarOwners then
-	-- 	local existingOwner = Instance.new("ObjectValue")
-	-- 	existingOwner.Value = setupCar
-	-- 	existingOwner.Name = player.Name
-	-- 	existingOwner.Parent = CarOwners
-	-- end
-
-	-- -- Add A-Chassis
-	-- local AChassis = GarageModule.GetDriveSystemFolder():WaitForChild("A-Chassis Tune"):Clone()
-	-- AChassis.Parent = setupCar
-
-	-- -- Make player leave garage
-	-- GarageModule.LeaveGarage(player, garageModel)
-
 	if not RunService:IsServer() then
 		return
 	end
