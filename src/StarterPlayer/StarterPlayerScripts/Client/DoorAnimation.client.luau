@@ -5,8 +5,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Replica = require(ReplicatedStorage.ReplicaClient)
 local ZonePlus = require(ReplicatedStorage.Packages.ZonePlus)
 
--- Get current Garage
-
 local currentGarage = nil
 
 Replica.OnNew("PlayerProfile", function(replica)
@@ -19,8 +17,8 @@ end)
 
 -- Door options
 local slideDistance = 5.5
-local rotationAngle = 90
-local speed = 2.5
+local rotationAngle = 80
+local speed = 1.5
 
 local tweenInfo = TweenInfo.new(speed, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local tweenTrack = nil

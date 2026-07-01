@@ -9,7 +9,6 @@ Replica.OnNew("PlayerProfile", function(replica)
 		print("Garáž se změnila na:", newGarageName)
 	end)
 
-	-- NOVINKA: Univerzální listener pro jakoukoliv změnu v profilu
 	replica:OnChange(function(changeType, path, value)
 		-- path[1] je hlavní klíč (např. "garage_slots")
 		if path[1] == "garage_slots" and changeType == "TableInsert" then

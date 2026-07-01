@@ -5,6 +5,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
 local ProfileManager = require(ServerScriptService.DataManager.ProfileManager)
 local Types = require(ServerScriptService.DataManager.Types)
 local getTaggedPartFromModel = require(ReplicatedStorage.Utils.getTaggedPartFromModel)
@@ -30,7 +31,7 @@ function GetFolder(parent, name)
 end
 
 function GarageModule.GetDriveSystemFolder()
-	return GetFolder(ServerScriptService, "Drive_System")
+	return GetFolder(ServerStorage, "DriveSystem")
 end
 
 function GarageModule.GetGaragesFolder()
@@ -141,6 +142,11 @@ function GarageModule.spawnGarageModel(player: Player, garageName: string)
 	ownerText.Value = player.Name
 	ownerText.Parent = newGarage
 
+	local ownerIdText = Instance.new("StringValue")
+	ownerIdText.Name = "OwnerId"
+	ownerIdText.Value = player.UserId
+	ownerIdText.Parent = newGarage
+
 	-- Garage name
 	local garageText = Instance.new("StringValue")
 	garageText.Name = "GarageName"
@@ -204,7 +210,7 @@ function GarageModule:WaitForGarageLoad(player, timeout)
 	return loadedGarage
 end
 
-function GarageModule.TeleportPlayerToGarage(player: Player, garage: Model)
+function GarageModule.TeleportPlayerToGarage(player: Player, garage)
 	if not player or not player:IsA("Player") then
 		return
 	end
@@ -214,7 +220,7 @@ function GarageModule.TeleportPlayerToGarage(player: Player, garage: Model)
 		return
 	end
 
-	local loadingFrame = player.PlayerGui:FindFirstChild("Loading"):FindFirstChild("Loading")
+	local loadingFrame = player:WaitForChild("PlayerGui"):WaitForChild("Loading"):WaitForChild("Loading")
 
 	if loadingFrame then
 		loadingFrame.Visible = true
@@ -230,15 +236,21 @@ function GarageModule.TeleportPlayerToGarage(player: Player, garage: Model)
 		humanoid.Sit = false
 	end
 
-	if not garage.InteriorSpawn then
+	local interiorSpawn = garage.InteriorSpawn
+	if not interiorSpawn then
 		return
 	end
-	local spawnPoint = garage.InteriorSpawn:Clone()
+
+	local spawnPoint = interiorSpawn:Clone()
+
+	if garage.OwnerId.Value == player.UserId then
+		GarageModule.despawnCar(player)
+	end
 
 	if RunService:IsServer() then
-		player:RequestStreamAroundAsync(garage.InteriorSpawn.Position)
+		player:RequestStreamAroundAsync(spawnPoint.Position)
 	end
-	character:PivotTo(garage.InteriorSpawn.CFrame + Vector3.new(0, 1, 0))
+	character:PivotTo(spawnPoint.CFrame + Vector3.new(0, 1, 0))
 
 	if loadingFrame then
 		loadingFrame.Visible = false
@@ -280,7 +292,7 @@ function GarageModule.LeaveGarage(player: Player, garage: Model)
 		return
 	end
 
-	local spawnLocation = entryGarage:FindFirstChild("SpawnLocation")
+	local spawnLocation = entryGarage:FindFirstChild("TargetPosition")
 	if not spawnLocation then
 		warn("SpawnLocation chybí v entryGarage: " .. garageName)
 		return
@@ -614,13 +626,73 @@ function GarageModule.ApplyApperanceOnTheCar(carModel)
 end
 
 function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: string })
+	-- if not RunService:IsServer() then
+	-- 	return
+	-- end
+	-- if not player then
+	-- 	return
+	-- end
+
+	-- if not car then
+	-- 	return
+	-- end
+
+	-- GarageModule.despawnCar(player) -- Despawn old car
+
+	-- local garageName = GarageModule.GetPlayerCurrentGarageName(player)
+	-- local garageModel = GarageModule.GetPlayerGarageModel(player)
+
+	-- local GarageEntryFolder = GarageModule.GetEntryGaragesFolder()
+	-- local entryGarage = GarageEntryFolder:WaitForChild(garageName .. "_Enter")
+	-- local spawnPoint = entryGarage:WaitForChild("SpawnLocation")
+
+	-- local setupCar = GarageModule.SetupCar(player, car)
+	-- if not setupCar then
+	-- 	return
+	-- end
+
+	-- setupCar.Name = player.Name .. "_Vehicle"
+	-- setupCar.Parent = GarageModule.GetCarsFolder()
+	-- setupCar:SetPrimaryPartCFrame(spawnPoint.CFrame * CFrame.new(0, 1, 0))
+
+	-- -- Add Car Parameters
+	-- local CarId = Instance.new("StringValue")
+	-- CarId.Name = "CarId"
+	-- CarId.Value = car.car_id
+	-- CarId.Parent = setupCar
+
+	-- local CarOwner = Instance.new("StringValue")
+	-- CarOwner.Name = "CarOwner"
+	-- CarOwner.Value = player.UserId
+	-- CarOwner.Parent = setupCar
+
+	-- local CarFuel = Instance.new("IntValue")
+	-- CarFuel.Name = "CarFuel"
+	-- CarFuel.Value = car.fuel
+	-- CarFuel.Parent = setupCar
+
+	-- -- Add player to Car Owners
+	-- local CarOwners = GarageModule.GetCarOwnersFolder()
+	-- if CarOwners then
+	-- 	local existingOwner = Instance.new("ObjectValue")
+	-- 	existingOwner.Value = setupCar
+	-- 	existingOwner.Name = player.Name
+	-- 	existingOwner.Parent = CarOwners
+	-- end
+
+	-- -- Add A-Chassis
+	-- local AChassis = GarageModule.GetDriveSystemFolder():WaitForChild("A-Chassis Tune"):Clone()
+	-- AChassis.Parent = setupCar
+
+	-- -- Make player leave garage
+	-- GarageModule.LeaveGarage(player, garageModel)
+
 	if not RunService:IsServer() then
 		return
 	end
 	if not player then
 		return
 	end
-
 	if not car then
 		return
 	end
@@ -654,6 +726,11 @@ function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: st
 	CarOwner.Value = player.UserId
 	CarOwner.Parent = setupCar
 
+	local ownerValue = Instance.new("ObjectValue")
+	ownerValue.Name = "Owner"
+	ownerValue.Value = player
+	ownerValue.Parent = setupCar
+
 	local CarFuel = Instance.new("IntValue")
 	CarFuel.Name = "CarFuel"
 	CarFuel.Value = car.fuel
@@ -674,6 +751,20 @@ function GarageModule.spawnCar(player: Player, car: Types.Vehicle & { car_id: st
 
 	-- Make player leave garage
 	GarageModule.LeaveGarage(player, garageModel)
+
+	local targetPositionPart = entryGarage:FindFirstChild("TargetPosition")
+
+	local Goal = targetPositionPart.CFrame * CFrame.new(0, 1, 0)
+	local Info = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+
+	local CF_value = Instance.new("CFrameValue")
+	CF_value.Changed:Connect(function(V)
+		setupCar:PivotTo(V)
+	end)
+	CF_value.Value = setupCar:GetPivot()
+
+	local Tween = TweenService:Create(CF_value, Info, { Value = Goal })
+	Tween:Play()
 end
 
 function GarageModule.despawnCar(player: Player)
@@ -690,6 +781,15 @@ function GarageModule.despawnCar(player: Player)
 	if existingOwner then
 		existingOwner.Value:Destroy()
 		existingOwner:Destroy()
+	end
+
+	-- Second try to destroy vehicle
+	local carsFolder = GarageModule.GetCarsFolder()
+	if carsFolder then
+		local carModel = carsFolder:FindFirstChild(player.Name .. "_Vehicle")
+		if carModel then
+			carModel:Destroy()
+		end
 	end
 end
 

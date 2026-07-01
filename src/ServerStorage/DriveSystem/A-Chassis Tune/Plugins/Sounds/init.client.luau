@@ -7,16 +7,7 @@
 	                Version 1.6.6
 --]]
 
-
-
-
-
 --[[					THIS IS NOT WHERE YOU EDIT VALUES. IT IS INSIDE "Edit" UNDER THIS SCRIPT.																			]]
-
-
-
-
-
 
 -- This script was made by Detomiks
 
@@ -38,7 +29,7 @@ local event = car:WaitForChild("Sounds")
 local prevBoost = -1000
 local lastBOV = tick() -- debounce method
 
-wait()
+task.wait()
 -- // Functions
 local function create()
 	table.clear(newEngineSounds)
@@ -49,7 +40,7 @@ local function create()
 	for i, v in next, vars.EngineSounds do
 		local ns = Instance.new("Sound")
 		ns.Name = v.name
-		ns.SoundId = "rbxassetid://"..v.id
+		ns.SoundId = "rbxassetid://" .. v.id
 		ns.Looped = true
 		ns.Volume = 0
 		ns.RollOffMaxDistance = v.rollOffMax
@@ -82,7 +73,7 @@ local function create()
 	for i, v in next, vars.TurboSounds do
 		local ns = Instance.new("Sound")
 		ns.Name = v.name
-		ns.SoundId = "rbxassetid://"..v.id
+		ns.SoundId = "rbxassetid://" .. v.id
 		ns.Looped = true
 		ns.Volume = 0
 		ns.RollOffMaxDistance = v.rollOffMax
@@ -98,7 +89,7 @@ local function create()
 	for i, v in next, vars.SuperSounds do
 		local ns = Instance.new("Sound")
 		ns.Name = v.name
-		ns.SoundId = "rbxassetid://"..v.id
+		ns.SoundId = "rbxassetid://" .. v.id
 		ns.Looped = true
 		ns.Volume = 0
 		ns.RollOffMaxDistance = v.rollOffMax
@@ -114,7 +105,7 @@ local function create()
 	for i, v in next, vars.BovSounds do
 		local ns = Instance.new("Sound")
 		ns.Name = v.name
-		ns.SoundId = "rbxassetid://"..v.id
+		ns.SoundId = "rbxassetid://" .. v.id
 		ns.Volume = 0
 		ns.RollOffMaxDistance = v.rollOffMax
 		ns.RollOffMinDistance = v.rollOffMin
@@ -129,7 +120,7 @@ local function create()
 	for i, v in next, vars.TransmissionSounds do
 		local ns = Instance.new("Sound")
 		ns.Name = v.name
-		ns.SoundId = "rbxassetid://"..v.id
+		ns.SoundId = "rbxassetid://" .. v.id
 		ns.Looped = true
 		ns.Volume = 0
 		ns.RollOffMaxDistance = v.rollOffMax
@@ -149,9 +140,13 @@ local function getWheelSpeed()
 	local count = 0
 	for _, v in next, values.WheelSpeeds:GetChildren() do
 		if _Tune.Config == "FWD" then
-			if v.Name == "R" or v.Name == "RL" or v.Name == "RR" then continue end
+			if v.Name == "R" or v.Name == "RL" or v.Name == "RR" then
+				continue
+			end
 		elseif _Tune.Config == "RWD" then
-			if v.Name == "F" or v.Name == "FL" or v.Name == "FR" then continue end
+			if v.Name == "F" or v.Name == "FL" or v.Name == "FR" then
+				continue
+			end
 		end
 		total += v.Value
 		count += 1
@@ -161,24 +156,48 @@ local function getWheelSpeed()
 end
 
 local function f(m, n, p, q, M, b, x)
-	return math.clamp(M - ( (q-n)/(b^p-b^m) * (b^x-b^m) + n ), 0, M)
+	return math.clamp(M - ((q - n) / (b ^ p - b ^ m) * (b ^ x - b ^ m) + n), 0, M)
 end
 
 local function gain(data, x)
-	local vvl = (_Tune.VVLTorque - f(_Tune.VVLRPM/1000, 0, (_Tune.VVLRPM + _Tune.VVLTime)/1000, _Tune.VVLTorque, _Tune.VVLTorque, _Tune.VVLCurve, values.RPM.Value/1000))/_Tune.VVLTorque * data.eq[x]
-	return data.eq[x] + (data.decelEq[x]*(1-values.Throttle.Value)) + vvl
+	local vvl = (
+		_Tune.VVLTorque
+		- f(
+			_Tune.VVLRPM / 1000,
+			0,
+			(_Tune.VVLRPM + _Tune.VVLTime) / 1000,
+			_Tune.VVLTorque,
+			_Tune.VVLTorque,
+			_Tune.VVLCurve,
+			values.RPM.Value / 1000
+		)
+	)
+		/ _Tune.VVLTorque
+		* data.eq[x]
+	return data.eq[x] + (data.decelEq[x] * (1 - values.Throttle.Value)) + vvl
 end
 
 local function update()
 	for i, data in next, vars.EngineSounds do
-		local fade = math.clamp(1 / data.fadeStart[2] * values.RPM.Value - data.fadeStart[1] * (1 / data.fadeStart[2]), 0, math.clamp(data.fadeEnd[1] * (1 / data.fadeEnd[2]) - (1 / data.fadeEnd[2]) * values.RPM.Value, 0, 1))
-		local vol = data.vol * ((data.throtVolMult - 1) * values.Throttle.Value + 1) * ((data.revVolMult - 1) * (values.RPM.Value / _Tune.Redline) + 1) * fade
-		local pit = data.pit + (data.rev - data.pit) * (values.RPM.Value / _Tune.Redline) * ((data.throtPitMult - 1) * values.Throttle.Value + 1)
+		local fade = math.clamp(
+			1 / data.fadeStart[2] * values.RPM.Value - data.fadeStart[1] * (1 / data.fadeStart[2]),
+			0,
+			math.clamp(data.fadeEnd[1] * (1 / data.fadeEnd[2]) - (1 / data.fadeEnd[2]) * values.RPM.Value, 0, 1)
+		)
+		local vol = data.vol
+			* ((data.throtVolMult - 1) * values.Throttle.Value + 1)
+			* ((data.revVolMult - 1) * (values.RPM.Value / _Tune.Redline) + 1)
+			* fade
+		local pit = data.pit
+			+ (data.rev - data.pit)
+				* (values.RPM.Value / _Tune.Redline)
+				* ((data.throtPitMult - 1) * values.Throttle.Value + 1)
 
 		local highGain = gain(data, 1)
 		local midGain = gain(data, 2)
 		local lowGain = gain(data, 3)
-		local level = data.decelDistortion + (data.distortion - data.decelDistortion) * (values.RPM.Value / _Tune.Redline)
+		local level = data.decelDistortion
+			+ (data.distortion - data.decelDistortion) * (values.RPM.Value / _Tune.Redline)
 		if vars.FE then
 			event:FireServer("updateEngine", car, i, vol, pit, highGain, midGain, lowGain, level)
 		else
@@ -218,7 +237,11 @@ local function update()
 		local vol = data.vol * values.BoostTurbo.Value
 		local pit = data.pitch + data.pitchIncrease * values.BoostTurbo.Value
 
-		if (values.BoostTurbo.Value + data.sensitivity < prevBoost) and (tick() - lastBOV > .5) and values.Throttle.Value < .8 then
+		if
+			(values.BoostTurbo.Value + data.sensitivity < prevBoost)
+			and (tick() - lastBOV > 0.5)
+			and values.Throttle.Value < 0.8
+		then
 			updateLastBOV = true
 			if vars.FE then
 				event:FireServer("updateBOV", car, i, vol, pit)
@@ -239,9 +262,13 @@ local function update()
 		local vol = data.vol - values.Clutch.Value * (data.vol - data.clutchVol)
 		local off = true
 		for i, v in next, data.gear do
-			if v == values.Gear.Value then off = false end
+			if v == values.Gear.Value then
+				off = false
+			end
 		end
-		if off then vol = data.offVol end
+		if off then
+			vol = data.offVol
+		end
 		local pit = data.pitch * (getWheelSpeed() / 300)
 
 		if vars.FE then
@@ -255,25 +282,51 @@ local function update()
 end
 
 local function play()
-	for _, v in next, newEngineSounds do v:Play() end
-	for _, v in next, newTurboSounds do v:Play() end
-	for _, v in next, newSuperSounds do v:Play() end
-	for _, v in next, newTransSounds do v:Play() end
+	for _, v in next, newEngineSounds do
+		v:Play()
+	end
+	for _, v in next, newTurboSounds do
+		v:Play()
+	end
+	for _, v in next, newSuperSounds do
+		v:Play()
+	end
+	for _, v in next, newTransSounds do
+		v:Play()
+	end
 end
 
 local function stop()
-	for _, v in next, newEngineSounds do v:Stop() end
-	for _, v in next, newTurboSounds do v:Stop() end
-	for _, v in next, newSuperSounds do v:Stop() end
-	for _, v in next, newTransSounds do v:Stop() end
+	for _, v in next, newEngineSounds do
+		v:Stop()
+	end
+	for _, v in next, newTurboSounds do
+		v:Stop()
+	end
+	for _, v in next, newSuperSounds do
+		v:Stop()
+	end
+	for _, v in next, newTransSounds do
+		v:Stop()
+	end
 end
 
 local function remove()
-	for _, v in next, newEngineSounds do v:Destroy() end
-	for _, v in next, newTurboSounds do v:Destroy() end
-	for _, v in next, newSuperSounds do v:Destroy() end
-	for _, v in next, newBOVSounds do v:Destroy() end
-	for _, v in next, newTransSounds do v:Destroy() end
+	for _, v in next, newEngineSounds do
+		v:Destroy()
+	end
+	for _, v in next, newTurboSounds do
+		v:Destroy()
+	end
+	for _, v in next, newSuperSounds do
+		v:Destroy()
+	end
+	for _, v in next, newBOVSounds do
+		v:Destroy()
+	end
+	for _, v in next, newTransSounds do
+		v:Destroy()
+	end
 end
 
 -- // Events
@@ -288,21 +341,19 @@ car.DriveSeat.ChildRemoved:Connect(function(child)
 end)
 
 -- // Run
-wait()
+task.wait()
 if vars.FE then
 	event:FireServer("create", car, vars)
 else
 	create()
 end
 
-if vars.FE==true then
-	event:FireServer('play')
+if vars.FE == true then
+	event:FireServer("play")
 else
 	play()
 end
 
-while wait(1/24) do
+while task.wait(1 / 24) do
 	update()
 end
-
-
